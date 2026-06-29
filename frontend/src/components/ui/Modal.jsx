@@ -1,0 +1,32 @@
+import { X } from 'lucide-react';
+import Button from './Button';
+
+export default function Modal({ open, onClose, title, children }) {
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div className="relative z-10 w-full max-w-md rounded-xl border border-border bg-surface p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 id="modal-title" className="text-lg font-semibold text-text">
+            {title}
+          </h2>
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close modal">
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
