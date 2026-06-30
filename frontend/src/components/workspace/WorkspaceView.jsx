@@ -15,6 +15,7 @@ export default function WorkspaceView() {
   const { workspaceId } = useParams();
   const { workspaces } = useWorkspaces();
   const [activeTab, setActiveTab] = useState('documents');
+  const [tasksRefreshKey, setTasksRefreshKey] = useState(0);
 
   const workspace = useMemo(
     () => workspaces.find((ws) => ws.id === workspaceId),
@@ -49,11 +50,16 @@ export default function WorkspaceView() {
 
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'documents' && <DocumentsTab workspaceId={workspaceId} />}
-          {activeTab === 'tasks' && <TasksTab />}
+          {activeTab === 'tasks' && (
+            <TasksTab workspaceId={workspaceId} refreshKey={tasksRefreshKey} />
+          )}
         </div>
       </div>
 
-      <ChatPanel workspaceId={workspaceId} />
+      <ChatPanel
+        workspaceId={workspaceId}
+        onChatComplete={() => setTasksRefreshKey((k) => k + 1)}
+      />
     </div>
   );
 }

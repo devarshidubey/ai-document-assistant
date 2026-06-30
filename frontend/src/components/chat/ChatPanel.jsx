@@ -16,7 +16,7 @@ function mapHistoryMessage(msg) {
   };
 }
 
-export default function ChatPanel({ workspaceId }) {
+export default function ChatPanel({ workspaceId, onChatComplete }) {
   const [open, setOpen] = useState(true);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -119,6 +119,7 @@ export default function ChatPanel({ workspaceId }) {
             ),
           );
           setStreaming(false);
+          onChatComplete?.();
         },
         onError: (message) => {
           if (activeWorkspaceRef.current !== capturedWorkspaceId) return;
