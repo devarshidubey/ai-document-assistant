@@ -15,6 +15,8 @@ Password: Test1234%
 ```
  
 This account has two preloaded workspaces, each with two documents already ingested, so you can test everything immediately without uploading anything yourself.
+
+NOTE: The Google AI API has a daily limit of 20 requests per day so test prudently please :)
  
 ### What to try
  
