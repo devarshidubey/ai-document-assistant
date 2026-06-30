@@ -10,10 +10,11 @@ The frontend is built entirely with Cursor's agent, using a single detailed upfr
  
 ## Decisions I made myself
  
-1. **No S3, no worker queues.** Had a choice to implement a dedicated upload pipeline to store the documents as editable files in a blob storage (didnt do that).
-2. **Rolled my own JWT auth** (bcrypt + jsonwebtoken) instead of Supabase Auth. I adopted single token authentication, but can be expanded to a refresh-access token pattern (didnt wanna overengineer).
-3. **Isolation enforced at the SQL layer everywhere** every query filters by `workspace_id` inside the query itself; tool execution always injects `workspace_id` from the authenticated request.
-4. **Embedding dimensionality**: Gemini's `gemini-embedding-001` defaults to 3072 dims, which exceeds pgvector's 2000-dim `hnsw` index limit. Claude suggested reducing to 1536 without strong justification so I chose 768 myself, since I feel the accuracy difference would've been negligible. For a higher volume scenario tho, I would have forced for the 3072 dimensions.
+1. **No S3, no worker queues:** Had a choice to implement a dedicated upload pipeline to store the documents as editable files in a blob storage (didnt do that).
+2. **Chunking Strat:** I chose paragraph aware chunking with overlap. Other choices were naive fixed size chunking, sentence aware chunking. This was the most sound strat to capture the entire idea that's being discussed in a paragraph (unline in naive or incomplete ideas in sentence aware). Moreover two chunks overlapped when they were derived from the same paragraph to ensure a clean split with the flow of the central idea of the paragraph being preserved as much as possible.
+3. **Rolled my own JWT auth:** (bcrypt + jsonwebtoken) instead of Supabase Auth. I adopted single token authentication, but can be expanded to a refresh-access token pattern (didnt wanna overengineer).
+4. **Isolation enforced at the SQL layer everywhere:** every query filters by `workspace_id` inside the query itself; tool execution always injects `workspace_id` from the authenticated request.
+5. **Embedding dimensionality:**: Gemini's `gemini-embedding-001` defaults to 3072 dims, which exceeds pgvector's 2000-dim `hnsw` index limit. Claude suggested reducing to 1536 without strong justification so I chose 768 myself, since I feel the accuracy difference would've been negligible. For a higher volume scenario tho, I would have forced for the 3072 dimensions.
 ## Hardest parts
  
 1. **Claude built the embeddings service on a deprecated package**, `@google/generative-ai`, which was throwing a 404 because the underlying model (`text-embedding-004`) had been shut down by Google. Claude's advice was to patch the model name within the old SDK. Refering to the docs, I found that `@google/genai` was the newer client and had different members and methods.
