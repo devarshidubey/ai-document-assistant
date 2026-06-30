@@ -16,6 +16,14 @@ The frontend is built entirely with Cursor's agent, using a single detailed upfr
 4. **Embedding dimensionality**: Gemini's `gemini-embedding-001` defaults to 3072 dims, which exceeds pgvector's 2000-dim `hnsw` index limit. Claude suggested reducing to 1536 without strong justification so I chose 768 myself, since I feel the accuracy difference would've been negligible. For a higher volume scenario tho, I would have forced for the 3072 dimensions.
 ## Hardest parts
  
-1. **`pdf-parse` import kept breaking.** Claude's attempts to use the pdf-parse library were failing repeatedly due to oudated usage. Had to check the actual docs mylself rather than guess.
-2. **Claude built the embeddings service on a deprecated package**, `@google/generative-ai`, which was throwing a 404 because the underlying model (`text-embedding-004`) had been shut down by Google. Claude's advice was to patch the model name within the old SDK. Refering to the docs, I found that `@google/genai` was the newer client and had different members and methods.
-3. **Large PDF uploads triggered Gemini rate limits.** A 100+ page document produced hundreds of per-chunk embedding calls, getting blocked by the free-tier rpm quota (`429`) and occasionally hitting `503` overload errors. Fixed by batching multiple chunks per embedding call and adding retry-with-exponential-backoff that follows Google's suggested retry delay, giving the API time to cool down between attempts. An early version of this had a bug where a malformed retry delay parsed to `0ms`, causing near-instant retry loops, so i added a minimum delay floor to actually fix.
+1. **Claude built the embeddings service on a deprecated package**, `@google/generative-ai`, which was throwing a 404 because the underlying model (`text-embedding-004`) had been shut down by Google. Claude's advice was to patch the model name within the old SDK. Refering to the docs, I found that `@google/genai` was the newer client and had different members and methods.
+
+2. **Large PDF uploads triggered Gemini rate limits.** A 100+ page document produced hundreds of per-chunk embedding calls, getting blocked by the free-tier rpm quota (`429`) and occasionally hitting `503` overload errors. Fixed by batching multiple chunks per embedding call and adding retry-with-exponential-backoff that follows Google's suggested retry delay, giving the API time to cool down between attempts. An early version of this had a bug where a malformed retry delay parsed to `0ms`, causing near-instant retry loops, so i added a minimum delay floor to actually fix.
+
+## What I'd improve or add with more time
+
+- MOST IMPORTANT: A dedicated upload pipeline that offloads the heavy embedding work to background workers using BullMQ or redis. It would free up the server resources and reduce the request time. (large PDFs can take around 3-4 minutes to upload due to embedding time itself apart from just getting rate limited by the model).
+- Workspace specific discord webhook cconfiguration, instead of one global webhook for the whole deployment.
+- I would've implemented cross workspace collaboration as well if I had a bit more time/coffee.
+- Integrate a dedicated separate DB for logs and expose some prometheus scrapabble metric endpoints.
+- 
